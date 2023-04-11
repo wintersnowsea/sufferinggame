@@ -1,0 +1,3 @@
+class GameSuccess extends GameObject{
+
+}

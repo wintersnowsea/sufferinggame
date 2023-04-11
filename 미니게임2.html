@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>미니게임2</title>
+    <link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
+    <style>
+        html {
+            overflow-y: hidden;
+        }
+
+        * {
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        #startClickText {
+            font-size: 100px;
+            color: gray;
+        }
+
+        #friendHint {
+            font-size: 75px;
+            color: pink;
+        }
+    </style>
+    <script src="./js/GameObject.js"></script>
+    <script src="./js/GameStart.js"></script>
+    <script src="./js/Basic.js"></script>
+    <script src="./js/Block.js"></script>
+    <script src="./js/Hero.js"></script>
+    <script src="./js/Heart.js"></script>
+    <script src="./js/GameOver.js"></script>
+    <script src="./js/GameSuccess.js"></script>
+    <script src="./js/Friend.js"></script>
+    <script>
+        let hero;
+        let st;
+        let die;
+        let success;
+        let gameSuccess;
+        let gameStart;
+        let heart;
+        let heartArray = [];
+        let gameFlag = false;
+        let view = 2;
+        let friend;
+        let friendLift = -1;
+        let friendArray = [];
+        let hintView = true;
+        let loopFlag = false;
+
+
+
+
+        //시작화면
+        function createGameStart() {
+
+            st = document.createElement("div");
+            st.style.width = ((blockWidth * map[0].length) - 100) + "px";
+            st.style.height = ((blockHeight * map[0].length) - 100) + "px";
+            st.style.background = "#d9d9d9";
+            st.innerHTML = "<br> GAME START <br> <span id='startClickText'>space<br></span><span id='friendHint'>Hint : D</span> ";
+            st.style.textAlign = "center";
+            st.style.fontSize = 250 + "px";
+            st.style.position = "absolute";
+            st.style.left = 50 + "px";
+            st.style.top = 50 + "px";
+            st.style.zIndex = 7;
+
+
+            stage.appendChild(st);
+
+            gameStart = new GameStart(stage, "./images/꼬미뛰기.gif", 0, 0, (blockWidth * map[0].length), (blockHeight * map.length), 0, 0);
+        }
+
+        //주인공
+        function createHero() {
+            //constructor(container,src,x,y,width,height,velX,velY)   
+            hero = new Hero(stage, "./images/꼬미.png", 1, 29, 50, 50, 0, 0);
+
+        }
+
+        //목숨
+        function createHeart() {
+            for (let i = 0; i < 5; i++) {
+                //constructor(container,src,x,y,width,height,velX,velY)
+                heart = new Heart(stage, "./images/heart.png", 1 + i, 1, 50, 50, 0, 0);
+                heartArray.push(heart);
+                lastHp++;
+            }
+        }
+
+        //좌우로 움직이기
+        function move(arr) {
+            hero.move(arr);
+        }
+
+        function gameSt() {
+            gameFlag = !gameFlag;
+                stage.removeChild(st);
+                stage.removeChild(gameStart.img);
+        }
+
+        function gameLoop() {
+            if (loopFlag) {
+                hero.tick();
+                hero.render();
+
+                heart.render();
+
+            }
+
+
+            setTimeout("gameLoop()", 10);
+        }
+
+        function createGameOver() {
+            gameOver = new GameOver(stage, "./images/꼬미눈물.gif", 10, 5, (blockWidth * map[0].length) / 3, (blockHeight * map.length) / 3, 0, 0);
+
+            die = document.createElement("div");
+            die.style.width = (blockWidth * map[0].length) + "px";
+            die.style.height = (blockHeight * map[0].length) + "px";
+            die.style.color = "white";
+            die.innerText = "GAME OVER";
+            die.style.fontSize = 250 + "px";
+            die.style.position = "absolute";
+            die.style.left = 250 + "px";
+            die.style.top = 724 + "px";
+
+            stage.appendChild(die);
+
+        }
+
+        function createGameSuccess() {
+            gameSuccess = new GameSuccess(stage, "./images/성공.gif", 8, 1, (blockWidth * map[0].length) / 2, (blockHeight * map.length) / 2, 0, 0);
+
+            success = document.createElement("div");
+            success.style.width = (blockWidth * map[0].length) + "px";
+            success.style.height = (blockHeight * map[0].length) + "px";
+            success.style.color = "white";
+            success.innerText = "SUCCESS!";
+            success.style.fontSize = 200 + "px";
+            success.style.position = "absolute";
+            success.style.left = 105 + "px";
+            success.style.top = 724 + "px";
+
+            stage.appendChild(success);
+
+        }
+
+        function viewEffect() {
+            //조명효과
+            for (let i = 0; i < blockArray.length; i++) {
+                for (let j = 0; j < blockArray[i].length; j++) {
+                    if (blockArray[i][j].x > hero.x - view && blockArray[i][j].x < hero.x + view && blockArray[i][j].y > hero.y - view && blockArray[i][j].y < hero.y + view) {
+                        blockArray[i][j].img.style.opacity = 0.8;
+                    } else if (i < 3 || i == blockArray.length - 1) {
+                        blockArray[i][j].img.style.opacity = 1;
+                    } else if (j == 0 || j == blockArray.length - 1) {
+                        blockArray[i][j].img.style.opacity = 1;
+                    }
+                    else {
+                        blockArray[i][j].img.style.opacity = 0;
+                    }
+                }
+            }
+        }
+
+        //힌트이미지생성
+        function createFriend() {
+
+            for (let i = 0; i < 3; i++) {
+                friend = new Friend(stage, "./images/소미.png", 29 - i, 1, 50, 50, 0, 0);
+                friendArray.push(friend);
+                friendLift++;
+            }
+        }
+
+        //힌트 효과주기
+        function hint() {
+            if (hintView && friendLift >= 0) {
+                for (let i = 0; i < blockArray.length; i++) {
+                    for (let j = 0; j < blockArray[i].length; j++) {
+                        blockArray[i][j].img.style.opacity = 0.8;
+                    }
+                }
+                stage.removeChild(friendArray[friendLift].img);
+                friendArray.splice(friendLift, 1);
+                friendLift--;
+
+                setTimeout("viewEffect()", 1000);
+            }
+        }
+
+
+
+
+        function init() {
+            createStage();
+            createHero();
+            createMap();
+            createHeart();
+            createFriend();
+            createGameStart()
+            gameLoop();
+
+
+            //키보드 효과넣기
+            document.addEventListener("keydown", function (e) {
+                //console.log(e.keyCode);
+                switch (e.keyCode) {
+                    case 37: move([-1, 0]); break; //왼쪽
+                    case 38: move([0, -1]); break; //위쪽
+                    case 39: move([1, 0]); break; //오른쪽
+                    case 40: move([0, 1]); break; //아래쪽
+                    case 32: gameSt(); loopFlag = true; break; //스페이스
+                    case 68: hint(); break;//키보드 D
+                }
+            });
+
+            viewEffect();
+        }
+
+        window.addEventListener("load", function () {
+            init();
+        });
+    </script>
+</head>
+
+<body>
+</body>
+
+</html>
